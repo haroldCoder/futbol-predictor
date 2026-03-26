@@ -1,6 +1,20 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { footballDataApi } from "../services/footballDataApi";
 
+// Mock expo-constants para tests
+vi.mock("expo-constants", () => ({
+  default: {
+    expoConfig: {
+      extra: {
+        footballDataApiKey: process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY,
+      },
+    },
+  },
+}));
+
+// Nota: Los tests de API se ejecutan en Node.js (vitest), no en Expo runtime
+// Por eso pueden acceder directamente a process.env
+// En la app móvil, la API key se obtiene desde expo-constants (configurada en app.config.ts)
 describe("Football Data API", () => {
   it("should have API key configured", () => {
     const apiKey = process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY;

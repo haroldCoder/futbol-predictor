@@ -84,3 +84,4 @@
 - [x] Agregar loading states y manejo de errores
 - [x] Tests para servicio de API (4 tests pasando)
 - [x] Crear adaptador de ApiMatch a Match
+- [x] Corregir error de carga: API key ahora se obtiene desde expo-constants en app.config.ts

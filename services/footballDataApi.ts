@@ -1,7 +1,18 @@
 import axios, { AxiosInstance } from "axios";
+import Constants from "expo-constants";
 
-const API_KEY = process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY;
 const BASE_URL = "https://api.football-data.org/v4";
+
+// Obtener API key desde expo-constants (configurado en app.config.ts)
+const getApiKey = (): string => {
+  const apiKey = Constants.expoConfig?.extra?.footballDataApiKey || "";
+  if (!apiKey) {
+    console.warn(
+      "Football Data API key not configured. Please set EXPO_PUBLIC_FOOTBALL_DATA_API_KEY environment variable.",
+    );
+  }
+  return apiKey;
+};
 
 interface ApiCompetition {
   id: number;
@@ -60,14 +71,27 @@ interface ApiStanding {
 
 class FootballDataApi {
   private client: AxiosInstance;
+  private apiKey: string;
 
   constructor() {
+    this.apiKey = getApiKey();
     this.client = axios.create({
       baseURL: BASE_URL,
       headers: {
-        "X-Auth-Token": API_KEY,
+        "X-Auth-Token": this.apiKey,
       },
     });
+
+    // Agregar interceptor para loguear errores
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.error("Football Data API: Authentication failed. Check your API key.");
+        }
+        return Promise.reject(error);
+      },
+    );
   }
 
   /**

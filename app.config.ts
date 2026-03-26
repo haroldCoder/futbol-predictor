@@ -36,6 +36,8 @@ const env = {
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
+  // API keys and secrets
+  footballDataApiKey: process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY || "",
 };
 
 const config: ExpoConfig = {
@@ -124,6 +126,9 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    footballDataApiKey: env.footballDataApiKey,
   },
 };
 
