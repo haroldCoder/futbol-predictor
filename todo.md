@@ -62,3 +62,25 @@
 - [x] Gradientes en headers y cards
 - [x] Feedback visual en interacciones (opacity)
 - [x] Colores semánticos (verde=victoria, rojo=derrota, naranja=empate)
+
+
+## Integración de API Real (Nueva)
+- [ ] Configurar API-Football key como variable de entorno
+- [ ] Crear servicio de API-Football con funciones para obtener partidos, ligas, equipos
+- [ ] Implementar caché con AsyncStorage para reducir llamadas a API
+- [ ] Reemplazar datos mock en pantalla Home
+- [ ] Reemplazar datos mock en pantalla Partidos
+- [ ] Reemplazar datos mock en pantalla Ligas
+- [ ] Agregar loading states y manejo de errores
+- [ ] Tests para servicio de API
+
+
+## Integración de API Real (Completado)
+- [x] Configurar API-Football key como variable de entorno
+- [x] Crear servicio de API-Football con funciones para obtener partidos, ligas, equipos
+- [x] Implementar caché con AsyncStorage para reducir llamadas a API
+- [x] Reemplazar datos mock en pantalla Home
+- [x] Reemplazar datos mock en pantalla Partidos
+- [x] Agregar loading states y manejo de errores
+- [x] Tests para servicio de API (4 tests pasando)
+- [x] Crear adaptador de ApiMatch a Match

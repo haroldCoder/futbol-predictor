@@ -1,21 +1,31 @@
 import React from "react";
-import { ScrollView, Text, View, StyleSheet, FlatList } from "react-native";
+import { ScrollView, Text, View, StyleSheet, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { FeaturedMatchBanner } from "@/components/FeaturedMatchBanner";
 import { MatchCard } from "@/components/MatchCard";
 import { SectionHeader } from "@/components/SectionHeader";
-import { useFootball } from "@/hooks/useFootball";
+import { SkeletonCard } from "@/components/SkeletonCard";
+import { useTodayMatches } from "@/hooks/useFootballApi";
 import { useColors } from "@/hooks/use-colors";
+import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { getFeaturedMatch, matches, getModelAccuracy } = useFootball();
   const colors = useColors();
-  const featuredMatch = getFeaturedMatch();
-  const accuracy = getModelAccuracy();
+  const { data: matches, loading, error } = useTodayMatches();
 
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming").slice(0, 5);
+  // Convertir ApiMatch a Match y separar por estado
+  const convertedMatches = matches?.map(adaptApiMatchToMatch) ?? [];
+  const upcomingMatches = convertedMatches.filter((m) => m.status === "upcoming").slice(0, 5);
+  const liveMatches = convertedMatches.filter((m) => m.status === "live");
+  const featuredMatch = liveMatches[0] ?? upcomingMatches[0];
+
+  // Calcular estadísticas simuladas (en producción, vendría del backend)
+  const accuracy = {
+    overall: 68,
+    totalPredictions: 342,
+    correctPredictions: 233,
+  };
 
   return (
     <ScreenContainer containerClassName="bg-background">
@@ -28,7 +38,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.appName}>⚽ FutbolPredictor</Text>
-            <Text style={[styles.subtitle, { color: colors.muted }]}>Predicciones con IA</Text>
+            <Text style={[styles.subtitle, { color: colors.muted }]}>Datos en tiempo real</Text>
           </View>
           <View style={[styles.accuracyBadge, { backgroundColor: "#00C85322", borderColor: "#00C853" }]}>
             <Text style={styles.accuracyValue}>{accuracy.overall}%</Text>
@@ -39,46 +49,84 @@ export default function HomeScreen() {
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={styles.statValue}>{accuracy.totalPredictions}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Predicciones</Text>
+            <Text style={styles.statValue}>{convertedMatches.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.muted }]}>Partidos Hoy</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.statValue, { color: "#00C853" }]}>{accuracy.correctPredictions}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Correctas</Text>
+            <Text style={[styles.statValue, { color: "#00C853" }]}>{liveMatches.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.muted }]}>En Vivo</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.statValue, { color: "#1565C0" }]}>{Object.keys(accuracy.byLeague).length}</Text>
-            <Text style={[styles.statLabel, { color: colors.muted }]}>Ligas</Text>
+            <Text style={[styles.statValue, { color: "#1565C0" }]}>{upcomingMatches.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.muted }]}>Próximos</Text>
           </View>
         </View>
 
-        {/* Featured Match */}
-        {featuredMatch && (
+        {/* Error State */}
+        {error && (
+          <View style={[styles.errorContainer, { backgroundColor: "#F4433622", borderColor: "#F44336" }]}>
+            <Text style={[styles.errorText, { color: "#F44336" }]}>
+              Error al cargar partidos. Verifica tu conexión.
+            </Text>
+          </View>
+        )}
+
+        {/* Loading State */}
+        {loading && (
           <View style={styles.section}>
-            <SectionHeader title="Partido Destacado" />
-            <FeaturedMatchBanner
-              match={featuredMatch}
-              onPress={() => router.push({ pathname: '/match/[id]', params: { id: featuredMatch.id } })}
-            />
+            <SectionHeader title="Cargando partidos..." />
+            <View style={styles.matchList}>
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Live Matches */}
+        {!loading && liveMatches.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="⚡ En Vivo Ahora" />
+            <View style={styles.matchList}>
+              {liveMatches.slice(0, 3).map((match: any) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id.toString() } })}
+                />
+              ))}
+            </View>
           </View>
         )}
 
         {/* Upcoming Matches */}
-        <View style={styles.section}>
-          <SectionHeader
-            title="Próximos Partidos"
-            onSeeAll={() => router.push('/matches')}
-          />
-          <View style={styles.matchList}>
-            {upcomingMatches.map((match) => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id } })}
-              />
-            ))}
+        {!loading && upcomingMatches.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader
+              title="Próximos Partidos"
+              onSeeAll={() => router.push("/matches")}
+            />
+            <View style={styles.matchList}>
+              {upcomingMatches.map((match: any) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id.toString() } })}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && convertedMatches.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>⚽</Text>
+            <Text style={[styles.emptyText, { color: colors.muted }]}>
+              No hay partidos disponibles en este momento
+            </Text>
+          </View>
+        )}
 
         {/* Bottom spacing */}
         <View style={{ height: 20 }} />
@@ -158,5 +206,28 @@ const styles = StyleSheet.create({
   },
   matchList: {
     gap: 12,
+  },
+  errorContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    gap: 12,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+  },
+  emptyText: {
+    fontSize: 15,
+    fontWeight: "500",
   },
 });
