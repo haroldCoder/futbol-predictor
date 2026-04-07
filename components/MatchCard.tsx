@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Match } from "@/types/football";
 import { useFootball } from "@/hooks/useFootball";
+import { TeamLogo } from "./TeamLogo";
 import { PredictionBar } from "./PredictionBar";
 import { useColors } from "@/hooks/use-colors";
 
@@ -27,10 +28,10 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
 
   const predictedLabel =
     match.prediction.predicted === "home"
-      ? homeTeam?.shortName
+      ? homeTeam?.shortName || match.homeTeam?.shortName
       : match.prediction.predicted === "away"
-      ? awayTeam?.shortName
-      : "Empate";
+        ? awayTeam?.shortName || match.awayTeam?.shortName
+        : "Empate";
 
   return (
     <Pressable
@@ -59,9 +60,9 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
       {/* Teams */}
       <View style={styles.teamsRow}>
         <View style={styles.teamBlock}>
-          <Text style={styles.teamEmoji}>{homeTeam?.emoji}</Text>
+          <TeamLogo source={homeTeam?.emoji || match.homeTeam?.logoUrl} size={22} />
           <Text style={[styles.teamName, { color: colors.foreground }]} numberOfLines={1}>
-            {homeTeam?.shortName}
+            {homeTeam?.shortName || match.homeTeam?.shortName}
           </Text>
         </View>
 
@@ -81,9 +82,9 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
         </View>
 
         <View style={[styles.teamBlock, styles.teamBlockRight]}>
-          <Text style={styles.teamEmoji}>{awayTeam?.emoji}</Text>
+          <TeamLogo source={awayTeam?.emoji || match.awayTeam?.logoUrl} size={22} />
           <Text style={[styles.teamName, { color: colors.foreground }]} numberOfLines={1}>
-            {awayTeam?.shortName}
+            {awayTeam?.shortName || match.awayTeam?.shortName}
           </Text>
         </View>
       </View>

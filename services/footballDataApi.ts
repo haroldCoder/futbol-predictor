@@ -202,6 +202,19 @@ class FootballDataApi {
       throw error;
     }
   }
+
+  /**
+   * Obtener detalles de un partido específico
+   */
+  async getMatch(matchId: string): Promise<ApiMatch> {
+    try {
+      const response = await this.client.get(`/matches/${matchId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching match ${matchId}:`, error);
+      throw error;
+    }
+  }
 }
 
 export const footballDataApi = new FootballDataApi();

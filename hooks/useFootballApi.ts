@@ -224,3 +224,41 @@ export function useHeadToHead(teamId1: number | null, teamId2: number | null): U
 
   return { data, loading, error, refetch: fetchData };
 }
+
+/**
+ * Hook para obtener un partido específico
+ */
+export function useMatch(matchId: string): UseFootballApiState<ApiMatch> {
+  const [data, setData] = useState<ApiMatch | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!matchId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const match = await CacheService.getOrFetch(
+        `match_${matchId}`,
+        () => footballDataApi.getMatch(matchId),
+        15, // Cache por 15 minutos
+      );
+      setData(match);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  }, [matchId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}

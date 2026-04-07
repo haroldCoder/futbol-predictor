@@ -71,6 +71,16 @@ export function adaptApiMatchToMatch(apiMatch: ApiMatch): Match {
     prediction,
     homeStats,
     awayStats,
+    homeTeam: {
+      name: apiMatch.homeTeam.name,
+      shortName: apiMatch.homeTeam.shortName || apiMatch.homeTeam.tla,
+      logoUrl: apiMatch.homeTeam.crest,
+    },
+    awayTeam: {
+      name: apiMatch.awayTeam.name,
+      shortName: apiMatch.awayTeam.shortName || apiMatch.awayTeam.tla,
+      logoUrl: apiMatch.awayTeam.crest,
+    },
     headToHead: {
       homeWins: Math.floor(Math.random() * 10),
       draws: Math.floor(Math.random() * 8),

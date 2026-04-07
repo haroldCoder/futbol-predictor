@@ -69,6 +69,8 @@ export interface Match {
   homeStats: TeamStats;
   awayStats: TeamStats;
   headToHead: HeadToHead;
+  homeTeam?: { name: string; shortName: string; logoUrl: string };
+  awayTeam?: { name: string; shortName: string; logoUrl: string };
   isFeatured?: boolean;
 }
 

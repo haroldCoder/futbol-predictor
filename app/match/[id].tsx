@@ -1,12 +1,15 @@
 import React from "react";
-import { ScrollView, Text, View, StyleSheet, Pressable } from "react-native";
+import { ScrollView, Text, View, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { PredictionBar } from "@/components/PredictionBar";
 import { FormIndicator } from "@/components/FormIndicator";
 import { SectionHeader } from "@/components/SectionHeader";
+import { TeamLogo } from "@/components/TeamLogo";
 import { useFootball } from "@/hooks/useFootball";
+import { useMatch, useTodayMatches } from "@/hooks/useFootballApi";
 import { useColors } from "@/hooks/use-colors";
+import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,12 +17,35 @@ export default function MatchDetailScreen() {
   const { getMatchById, getTeam, getLeague } = useFootball();
   const colors = useColors();
 
-  const match = getMatchById(id ?? "");
+  // 1. Intentar obtener de mock
+  const mockMatch = getMatchById(id ?? "");
+
+  // 2. Intentar obtener de API si no es mock o si queremos datos frescos
+  const { data: apiMatchData, loading: apiLoading, error: apiError } = useMatch(id ?? "");
+
+  // Determinar cuál usar
+  const match = mockMatch || (apiMatchData ? adaptApiMatchToMatch(apiMatchData) : null);
+
+  if (apiLoading && !mockMatch) {
+    return (
+      <ScreenContainer containerClassName="bg-background">
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#00C853" />
+          <Text style={{ color: colors.muted, marginTop: 12 }}>Cargando detalles...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
   if (!match) {
     return (
       <ScreenContainer containerClassName="bg-background">
         <View style={styles.center}>
-          <Text style={{ color: colors.foreground }}>Partido no encontrado</Text>
+          <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "700" }}>⚽</Text>
+          <Text style={{ color: colors.foreground, marginTop: 8 }}>Partido no encontrado</Text>
+          <Pressable onPress={() => router.back()} style={{ marginTop: 20 }}>
+            <Text style={{ color: "#00C853", fontWeight: "600" }}>Volver al inicio</Text>
+          </Pressable>
         </View>
       </ScreenContainer>
     );
@@ -29,12 +55,17 @@ export default function MatchDetailScreen() {
   const awayTeam = getTeam(match.awayTeamId);
   const league = getLeague(match.leagueId);
 
+  const homeName = homeTeam?.name || match.homeTeam?.name;
+  const awayName = awayTeam?.name || match.awayTeam?.name;
+  const homeEmoji = homeTeam?.emoji || match.homeTeam?.logoUrl;
+  const awayEmoji = awayTeam?.emoji || match.awayTeam?.logoUrl;
+
   const predictedTeam =
     match.prediction.predicted === "home"
-      ? homeTeam?.name
+      ? homeName
       : match.prediction.predicted === "away"
-      ? awayTeam?.name
-      : "Empate";
+        ? awayName
+        : "Empate";
 
   return (
     <ScreenContainer containerClassName="bg-background">
@@ -54,8 +85,8 @@ export default function MatchDetailScreen() {
 
         {/* League Header */}
         <View style={styles.leagueRow}>
-          <Text style={styles.leagueEmoji}>{league?.emoji}</Text>
-          <Text style={[styles.leagueName, { color: colors.muted }]}>{league?.name}</Text>
+          <Text style={styles.leagueEmoji}>{league?.emoji || "⚽"}</Text>
+          <Text style={[styles.leagueName, { color: colors.muted }]}>{league?.name || match.leagueId.toUpperCase()}</Text>
           <Text style={[styles.dot, { color: colors.muted }]}>•</Text>
           <Text style={[styles.matchTime, { color: colors.muted }]}>{match.date} {match.time}</Text>
         </View>
@@ -65,9 +96,9 @@ export default function MatchDetailScreen() {
           <View style={[styles.topAccent, { backgroundColor: "#00C853" }]} />
           <View style={styles.teamsRow}>
             <View style={styles.teamCol}>
-              <Text style={styles.teamEmojiHero}>{homeTeam?.emoji}</Text>
+              <TeamLogo source={homeEmoji} size={40} />
               <Text style={[styles.teamNameHero, { color: colors.foreground }]} numberOfLines={2}>
-                {homeTeam?.name}
+                {homeName}
               </Text>
               <Text style={[styles.teamRole, { color: colors.muted }]}>Local</Text>
             </View>
@@ -85,9 +116,9 @@ export default function MatchDetailScreen() {
             </View>
 
             <View style={[styles.teamCol, styles.teamColRight]}>
-              <Text style={styles.teamEmojiHero}>{awayTeam?.emoji}</Text>
+              <TeamLogo source={awayEmoji} size={40} />
               <Text style={[styles.teamNameHero, { color: colors.foreground, textAlign: "right" }]} numberOfLines={2}>
-                {awayTeam?.name}
+                {awayName}
               </Text>
               <Text style={[styles.teamRole, { color: colors.muted }]}>Visitante</Text>
             </View>
@@ -109,12 +140,12 @@ export default function MatchDetailScreen() {
           <SectionHeader title="Forma Reciente" />
           <View style={styles.formRow}>
             <View style={styles.formTeam}>
-              <Text style={[styles.formTeamName, { color: colors.foreground }]}>{homeTeam?.shortName}</Text>
+              <Text style={[styles.formTeamName, { color: colors.foreground }]}>{homeTeam?.shortName || match.homeTeam?.shortName}</Text>
               <FormIndicator form={match.homeStats.form} />
             </View>
             <View style={styles.formTeam}>
               <Text style={[styles.formTeamName, { color: colors.foreground, textAlign: "right" }]}>
-                {awayTeam?.shortName}
+                {awayTeam?.shortName || match.awayTeam?.shortName}
               </Text>
               <FormIndicator form={match.awayStats.form} />
             </View>
@@ -172,7 +203,7 @@ export default function MatchDetailScreen() {
           <View style={styles.h2hRow}>
             <View style={styles.h2hBlock}>
               <Text style={[styles.h2hValue, { color: "#00C853" }]}>{match.headToHead.homeWins}</Text>
-              <Text style={[styles.h2hLabel, { color: colors.muted }]}>{homeTeam?.shortName}</Text>
+              <Text style={[styles.h2hLabel, { color: colors.muted }]}>{homeTeam?.shortName || match.homeTeam?.shortName}</Text>
             </View>
             <View style={styles.h2hBlock}>
               <Text style={[styles.h2hValue, { color: colors.muted }]}>{match.headToHead.draws}</Text>
@@ -180,7 +211,7 @@ export default function MatchDetailScreen() {
             </View>
             <View style={styles.h2hBlock}>
               <Text style={[styles.h2hValue, { color: "#1565C0" }]}>{match.headToHead.awayWins}</Text>
-              <Text style={[styles.h2hLabel, { color: colors.muted }]}>{awayTeam?.shortName}</Text>
+              <Text style={[styles.h2hLabel, { color: colors.muted }]}>{awayTeam?.shortName || match.awayTeam?.shortName}</Text>
             </View>
           </View>
 
@@ -213,10 +244,10 @@ export default function MatchDetailScreen() {
           {/* Last Matches */}
           <View style={styles.lastMatchesContainer}>
             <Text style={[styles.lastMatchesTitle, { color: colors.muted }]}>Últimos Enfrentamientos</Text>
-            {match.headToHead.lastMatches.map((lm, i) => {
+            {match.headToHead.lastMatches.map((lm: any, i: number) => {
               const isHome = lm.homeTeamId === match.homeTeamId;
-              const homeTeamName = isHome ? homeTeam?.shortName : awayTeam?.shortName;
-              const awayTeamName = isHome ? awayTeam?.shortName : homeTeam?.shortName;
+              const homeTeamName = isHome ? (homeTeam?.shortName || match.homeTeam?.shortName) : (awayTeam?.shortName || match.awayTeam?.shortName);
+              const awayTeamName = isHome ? (awayTeam?.shortName || match.awayTeam?.shortName) : (homeTeam?.shortName || match.homeTeam?.shortName);
               return (
                 <View key={i} style={[styles.lastMatchRow, { borderColor: colors.border }]}>
                   <Text style={[styles.lastMatchDate, { color: colors.muted }]}>{lm.date}</Text>
