@@ -16,6 +16,7 @@ const MAPPING = {
   "paperplane.fill": "send",
   "chevron.left.forwardslash.chevron.right": "code",
   "chevron.right": "chevron-right",
+  "chevron.down": "keyboard-arrow-down",
   "sportscourt.fill": "sports-soccer",
   "trophy.fill": "emoji-events",
   "chart.bar.fill": "bar-chart",

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, TextInput, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { MatchCard } from "@/components/MatchCard";
@@ -7,22 +7,34 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { useCompetitions, useTodayMatches } from "@/hooks/useFootballApi";
 import { useColors } from "@/hooks/use-colors";
 import { adaptApiMatchToMatch } from "@/services/matchAdapter";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 export default function MatchesScreen() {
   const router = useRouter();
   const colors = useColors();
   const [selectedLeague, setSelectedLeague] = useState("all");
+  const [searchText, setSearchText] = useState("");
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const { data: competitions, loading: competitionsLoading } = useCompetitions();
   const { data: allMatches, loading: matchesLoading, error: matchesError } = useTodayMatches();
 
-  const allLeaguesOption = { id: "all", shortName: "Todos", emoji: "⚽" };
+  const allLeaguesOption = { id: "all" as any, shortName: "Todos", emoji: "⚽", code: "all" };
   const leagueOptions = [allLeaguesOption, ...(competitions || [])];
+
+  const selectedLeagueObj = leagueOptions.find(l => (l.id.toString() === selectedLeague));
 
   // Convertir y filtrar partidos
   const convertedMatches = allMatches?.map(adaptApiMatchToMatch) ?? [];
-  const filteredMatches = selectedLeague === "all"
-    ? convertedMatches
-    : convertedMatches.filter((m) => m.leagueId === (selectedLeague as any).code?.toLowerCase() || selectedLeague.toLowerCase());
+  const filteredMatches = useMemo(() => convertedMatches.filter((m) => {
+    const matchesLeague = selectedLeague === "all" || m.leagueId === (selectedLeagueObj as any)?.code?.toLowerCase();
+    const searchLower = searchText.toLowerCase();
+    const matchesSearch = !searchText ||
+      (m.homeTeam?.name?.toLowerCase().includes(searchLower) ?? false) ||
+      (m.homeTeam?.shortName?.toLowerCase().includes(searchLower) ?? false) ||
+      (m.awayTeam?.name?.toLowerCase().includes(searchLower) ?? false) ||
+      (m.awayTeam?.shortName?.toLowerCase().includes(searchLower) ?? false);
+    return matchesLeague && matchesSearch;
+  }), [convertedMatches, selectedLeague, searchText]);
 
   return (
     <ScreenContainer containerClassName="bg-background">
@@ -30,51 +42,96 @@ export default function MatchesScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>⚽ Partidos</Text>
         <Text style={[styles.subtitle, { color: colors.muted }]}>
-          {matchesLoading ? "Cargando..." : `${filteredMatches.length} partidos encontrados`}
+          {matchesLoading ? "Cargando..." : `${filteredMatches.length} partidos ${selectedLeague !== "all" ? `en ${(selectedLeagueObj as any)?.name || ""}` : "encontrados"}`}
         </Text>
       </View>
 
-      {/* League Filter */}
-      {competitionsLoading ? (
-        <View style={styles.loadingFilter}>
-          <ActivityIndicator size="small" color="#00C853" />
+      {/* League Filter & Search */}
+      <View style={styles.filterRow}>
+        {competitionsLoading ? (
+          <View style={styles.loadingFilter}>
+            <ActivityIndicator size="small" color="#00C853" />
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.dropdownButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={() => setIsDropdownVisible(true)}
+          >
+            <Text style={[styles.dropdownText, { color: colors.text }]} numberOfLines={1}>
+              {(selectedLeagueObj as any)?.emoji || "⚽"} {(selectedLeagueObj as any)?.shortName || (selectedLeagueObj as any)?.name}
+            </Text>
+            <IconSymbol name="chevron.down" size={16} color={colors.muted} />
+          </Pressable>
+        )}
+
+        <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <IconSymbol name="magnifyingglass" size={18} color={colors.muted} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Buscar equipo..."
+            placeholderTextColor={colors.muted}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          {searchText ? (
+            <Pressable onPress={() => setSearchText("")}>
+              <IconSymbol name="xmark.circle.fill" size={18} color={colors.muted} />
+            </Pressable>
+          ) : null}
         </View>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterScroll}
-          contentContainerStyle={styles.filterContent}
+      </View>
+
+      {/* League Selection Modal */}
+      <Modal
+        visible={isDropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsDropdownVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsDropdownVisible(false)}
         >
-          {leagueOptions.map((league) => {
-            const isActive = selectedLeague === league.id;
-            return (
-              <Pressable
-                key={league.id}
-                onPress={() => setSelectedLeague(league.id.toString())}
-                style={({ pressed }) => [
-                  styles.filterChip,
-                  {
-                    backgroundColor: isActive ? "#00C853" : colors.surface,
-                    borderColor: isActive ? "#00C853" : colors.border,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Text style={styles.filterEmoji}>{(league as any).emoji || "⚽"}</Text>
-                <Text
-                  style={[
-                    styles.filterLabel,
-                    { color: isActive ? "#050D14" : colors.muted },
-                  ]}
-                >
-                  {(league as any).shortName || (league as any).name}
-                </Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Seleccionar Competición</Text>
+              <Pressable onPress={() => setIsDropdownVisible(false)}>
+                <IconSymbol name="xmark.circle.fill" size={24} color={colors.muted} />
               </Pressable>
-            );
-          })}
-        </ScrollView>
-      )}
+            </View>
+            <FlatList
+              data={leagueOptions}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => {
+                const isActive = selectedLeague === item.id.toString();
+                return (
+                  <Pressable
+                    style={[
+                      styles.modalItem,
+                      isActive && { backgroundColor: "#00C85322" }
+                    ]}
+                    onPress={() => {
+                      setSelectedLeague(item.id.toString());
+                      setIsDropdownVisible(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemEmoji}>{(item as any).emoji || "⚽"}</Text>
+                    <Text style={[
+                      styles.modalItemLabel,
+                      { color: isActive ? "#00C853" : colors.text },
+                      isActive && { fontWeight: "bold" }
+                    ]}>
+                      {(item as any).name}
+                    </Text>
+                    {isActive && <IconSymbol name="checkmark.circle.fill" size={20} color="#00C853" />}
+                  </Pressable>
+                );
+              }}
+              ItemSeparatorComponent={() => <View style={[styles.modalSeparator, { backgroundColor: colors.border }]} />}
+            />
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Error State */}
       {matchesError && (
@@ -136,29 +193,88 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
   },
-  filterScroll: {
-    maxHeight: 50,
-  },
-  filterContent: {
+  filterRow: {
+    flexDirection: "row",
     paddingHorizontal: 16,
+    paddingBottom: 12,
     gap: 8,
-    paddingBottom: 4,
+    alignItems: "center",
   },
-  filterChip: {
+  dropdownButton: {
+    flex: 1.2,
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  filterEmoji: {
+  dropdownText: {
     fontSize: 14,
-  },
-  filterLabel: {
-    fontSize: 12,
     fontWeight: "600",
+    flex: 1,
+    marginRight: 4,
+  },
+  searchContainer: {
+    flex: 1.8,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 16,
+    paddingBottom: 40,
+    maxHeight: "70%",
+    borderWidth: 1,
+    borderBottomWidth: 0,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  modalItemEmoji: {
+    fontSize: 20,
+  },
+  modalItemLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  modalSeparator: {
+    height: 1,
+    marginHorizontal: 20,
+    opacity: 0.5,
   },
   listContent: {
     padding: 16,
