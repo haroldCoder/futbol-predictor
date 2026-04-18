@@ -1,12 +1,12 @@
 import React from "react";
-import { ScrollView, Text, View, StyleSheet, ActivityIndicator } from "react-native";
+import { ScrollView, Text, View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { MatchCard } from "@/components/MatchCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { useTodayMatches } from "@/hooks/useFootballApi";
-import { useColors } from "@/hooks/use-colors";
+import { useTodayMatches } from "@/application/hooks/api";
+import { useColors } from "@/application/hooks/use-colors";
 import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 
 export default function HomeScreen() {

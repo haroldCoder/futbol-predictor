@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Match } from "@/types/football";
-import { useFootball } from "@/hooks/useFootball";
+import { useFootball } from "@/application/hooks/useFootball";
 import { TeamLogo } from "./TeamLogo";
 import { PredictionBar } from "./PredictionBar";
-import { useColors } from "@/hooks/use-colors";
+import { useColors } from "@/application/hooks/use-colors";
 
 interface MatchCardProps {
   match: Match;

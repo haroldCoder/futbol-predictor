@@ -6,9 +6,9 @@ import { PredictionBar } from "@/components/PredictionBar";
 import { FormIndicator } from "@/components/FormIndicator";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TeamLogo } from "@/components/TeamLogo";
-import { useFootball } from "@/hooks/useFootball";
-import { useMatch, useTodayMatches } from "@/hooks/useFootballApi";
-import { useColors } from "@/hooks/use-colors";
+import { useFootball } from "@/application/hooks/useFootball";
+import { useMatch, useTodayMatches } from "@/application/hooks/api";
+import { useColors } from "@/application/hooks/use-colors";
 import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 
 export default function MatchDetailScreen() {

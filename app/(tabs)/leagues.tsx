@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, FlatList, ScrollView, Pressable } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
-import { useFootball } from "@/hooks/useFootball";
-import { useColors } from "@/hooks/use-colors";
+import { useFootball } from "@/application/hooks/useFootball";
+import { useColors } from "@/application/hooks/use-colors";
 import { StandingEntry } from "@/types/football";
 
 export default function LeaguesScreen() {

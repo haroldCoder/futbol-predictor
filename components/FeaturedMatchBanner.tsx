@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Match } from "@/types/football";
-import { useFootball } from "@/hooks/useFootball";
+import { useFootball } from "@/application/hooks/useFootball";
 import { PredictionBar } from "./PredictionBar";
 
 interface FeaturedMatchBannerProps {
@@ -19,8 +19,8 @@ export function FeaturedMatchBanner({ match, onPress }: FeaturedMatchBannerProps
     match.prediction.predicted === "home"
       ? homeTeam?.name
       : match.prediction.predicted === "away"
-      ? awayTeam?.name
-      : "Empate";
+        ? awayTeam?.name
+        : "Empate";
 
   return (
     <Pressable

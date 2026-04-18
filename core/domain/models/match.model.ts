@@ -2,7 +2,7 @@ import { MatchStatus, PredictionResult } from "../types";
 import { TeamStatsModel } from "./team-stats.model";
 import { HeadToHeadModel } from "./head-to-head.model";
 
-export interface Match {
+export interface MatchModel {
     id: string;
     leagueId: string;
     homeTeamId: string;

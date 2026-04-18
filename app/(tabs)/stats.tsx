@@ -2,8 +2,8 @@ import React from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { SectionHeader } from "@/components/SectionHeader";
-import { useFootball } from "@/hooks/useFootball";
-import { useColors } from "@/hooks/use-colors";
+import { useFootball } from "@/application/hooks/useFootball";
+import { useColors } from "@/application/hooks/use-colors";
 
 export default function StatsScreen() {
   const { getModelAccuracy, leagues } = useFootball();

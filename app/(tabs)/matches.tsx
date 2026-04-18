@@ -4,8 +4,8 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { MatchCard } from "@/components/MatchCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { useCompetitions, useTodayMatches } from "@/hooks/useFootballApi";
-import { useColors } from "@/hooks/use-colors";
+import { useCompetitions, useTodayMatches } from "@/application/hooks/api";
+import { useColors } from "@/application/hooks/use-colors";
 import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 

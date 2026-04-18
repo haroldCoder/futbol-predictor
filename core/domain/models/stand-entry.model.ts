@@ -1,4 +1,4 @@
-export interface StandingEntry {
+export interface StandingEntryModel {
     position: number;
     teamId: string;
     played: number;
