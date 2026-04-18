@@ -1,0 +1,1 @@
+export type PredictionResult = "home" | "draw" | "away";

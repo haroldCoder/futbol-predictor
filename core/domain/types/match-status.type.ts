@@ -1,0 +1,1 @@
+export type MatchStatus = "upcoming" | "live" | "finished";
