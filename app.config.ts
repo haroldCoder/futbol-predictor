@@ -53,8 +53,8 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
     "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "ITSAppUsesNonExemptEncryption": false
+    }
   },
   android: {
     adaptiveIcon: {
@@ -129,6 +129,9 @@ const config: ExpoConfig = {
   },
   extra: {
     footballDataApiKey: env.footballDataApiKey,
+    eas: {
+      projectId: "41c17439-cca5-41f7-a92b-513dc6e56e8d"
+    }
   },
 };
 

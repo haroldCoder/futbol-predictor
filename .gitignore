@@ -65,3 +65,4 @@ Thumbs.db
 .webdev/
 
 .env
+eas.json*
