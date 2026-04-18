@@ -1,9 +1,10 @@
-import { MatchModel, PredictionModel } from "../models";
+import { PredictionModel } from "../models";
+import { ApiMatch } from "@/core/infrastructure/http/football-data/interfaces";
 
 export class PredictionService {
-    static generate(match: MatchModel): PredictionModel {
+    static generate(match: ApiMatch): PredictionModel {
         const seed =
-            (Number(match.homeTeamId) + Number(match.awayTeamId)) % 100;
+            (Number(match.homeTeam.id) + Number(match.awayTeam.id)) % 100;
 
         let homeWin = 0;
         let draw = 0;

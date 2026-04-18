@@ -70,6 +70,7 @@ export default function MatchDetailScreen() {
         ? awayName
         : "Empate";
 
+
   return (
     <ScreenContainer containerClassName="bg-background">
       <ScrollView
