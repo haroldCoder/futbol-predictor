@@ -1,15 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Prediction } from "@/types/football";
+import { PredictionModel } from "@/core/domain/models";
 import { useColors } from "@/application/hooks/use-colors";
 
 interface PredictionBarProps {
-  prediction: Prediction;
+  prediction: PredictionModel;
   compact?: boolean;
 }
 
 export function PredictionBar({ prediction, compact = false }: PredictionBarProps) {
   const colors = useColors();
+  console.log(prediction);
+
   const { homeWin, draw, awayWin } = prediction;
 
   const confidenceColor = {

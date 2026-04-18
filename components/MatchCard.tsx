@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Match } from "@/types/football";
-import { useFootball } from "@/application/hooks/useFootball";
+import { MatchModel } from "@/core/domain/models";
+import { useTeams, useLeagues } from "@/application/hooks";
 import { TeamLogo } from "./TeamLogo";
 import { PredictionBar } from "./PredictionBar";
 import { useColors } from "@/application/hooks/use-colors";
 
 interface MatchCardProps {
-  match: Match;
+  match: MatchModel;
   onPress?: () => void;
   compact?: boolean;
 }
@@ -19,7 +19,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
-  const { getTeam, getLeague } = useFootball();
+  const { getTeam } = useTeams();
+  const { getLeague } = useLeagues();
   const colors = useColors();
   const homeTeam = getTeam(match.homeTeamId);
   const awayTeam = getTeam(match.awayTeamId);
@@ -27,9 +28,9 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
   const status = STATUS_LABELS[match.status];
 
   const predictedLabel =
-    match.prediction.predicted === "home"
+    match.prediction?.predicted === "home"
       ? homeTeam?.shortName || match.homeTeam?.shortName
-      : match.prediction.predicted === "away"
+      : match.prediction?.predicted === "away"
         ? awayTeam?.shortName || match.awayTeam?.shortName
         : "Empate";
 
@@ -90,7 +91,7 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
       </View>
 
       {/* Prediction Bar */}
-      {!compact && (
+      {!compact && match.prediction && (
         <View style={styles.predictionSection}>
           <PredictionBar prediction={match.prediction} compact />
         </View>

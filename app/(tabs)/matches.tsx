@@ -6,8 +6,8 @@ import { MatchCard } from "@/components/MatchCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { useCompetitions, useTodayMatches } from "@/application/hooks/api";
 import { useColors } from "@/application/hooks/use-colors";
-import { adaptApiMatchToMatch } from "@/services/matchAdapter";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { FootballDataMapper } from "@/core/infrastructure/mappers";
 
 export default function MatchesScreen() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function MatchesScreen() {
   const selectedLeagueObj = leagueOptions.find(l => (l.id.toString() === selectedLeague));
 
   // Convertir y filtrar partidos
-  const convertedMatches = allMatches?.map(adaptApiMatchToMatch) ?? [];
+  const convertedMatches = allMatches?.map(FootballDataMapper.toDomain) ?? [];
   const filteredMatches = useMemo(() => convertedMatches.filter((m) => {
     const matchesLeague = selectedLeague === "all" || m.leagueId === (selectedLeagueObj as any)?.code?.toLowerCase();
     const searchLower = searchText.toLowerCase();

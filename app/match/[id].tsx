@@ -6,27 +6,30 @@ import { PredictionBar } from "@/components/PredictionBar";
 import { FormIndicator } from "@/components/FormIndicator";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TeamLogo } from "@/components/TeamLogo";
-import { useFootball } from "@/application/hooks/useFootball";
-import { useMatch, useTodayMatches } from "@/application/hooks/api";
 import { useColors } from "@/application/hooks/use-colors";
-import { adaptApiMatchToMatch } from "@/services/matchAdapter";
+import { useMatch } from "@/application/hooks/api";
+import { FootballDataMapper } from "@/core/infrastructure/mappers";
+import { useLeagues, useTeams, useGetMatchId } from "@/application/hooks";
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getMatchById, getTeam, getLeague } = useFootball();
   const colors = useColors();
+  const { getLeague } = useLeagues();
+  const { getTeam } = useTeams();
 
-  // 1. Intentar obtener de mock
-  const mockMatch = getMatchById(id ?? "");
+  // 1. Intentar obtener de mock/caching via useQuery
+  const { data: mockMatch, isLoading: mockLoading } = useGetMatchId(id ?? "");
 
   // 2. Intentar obtener de API si no es mock o si queremos datos frescos
   const { data: apiMatchData, loading: apiLoading, error: apiError } = useMatch(id ?? "");
 
   // Determinar cuál usar
-  const match = mockMatch || (apiMatchData ? adaptApiMatchToMatch(apiMatchData) : null);
+  const match = mockMatch || (apiMatchData ? FootballDataMapper.toDomain(apiMatchData) : null);
 
-  if (apiLoading && !mockMatch) {
+  const isLoading = (apiLoading && !mockMatch) || (mockLoading && !id);
+
+  if (isLoading) {
     return (
       <ScreenContainer containerClassName="bg-background">
         <View style={styles.center}>
@@ -61,9 +64,9 @@ export default function MatchDetailScreen() {
   const awayEmoji = awayTeam?.emoji || match.awayTeam?.logoUrl;
 
   const predictedTeam =
-    match.prediction.predicted === "home"
+    match.prediction?.predicted === "home"
       ? homeName
-      : match.prediction.predicted === "away"
+      : match.prediction?.predicted === "away"
         ? awayName
         : "Empate";
 
@@ -107,7 +110,7 @@ export default function MatchDetailScreen() {
               <Text style={[styles.vsHero, { color: colors.muted }]}>VS</Text>
               <View style={[styles.scorePreview, { backgroundColor: "#00C85322", borderColor: "#00C853" }]}>
                 <Text style={styles.scorePreviewText}>
-                  {match.prediction.predictedScore.home}-{match.prediction.predictedScore.away}
+                  {match.prediction?.predictedScore.home}-{match.prediction?.predictedScore.away}
                 </Text>
               </View>
               <Text style={[styles.stadiumText, { color: colors.muted }]} numberOfLines={1}>
@@ -128,7 +131,7 @@ export default function MatchDetailScreen() {
         {/* Prediction Section */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <SectionHeader title="Predicción IA" />
-          <PredictionBar prediction={match.prediction} />
+          {match.prediction && <PredictionBar prediction={match.prediction} />}
           <View style={styles.winnerBanner}>
             <Text style={[styles.winnerLabel, { color: colors.muted }]}>Ganador Predicho</Text>
             <Text style={styles.winnerValue}>{predictedTeam}</Text>
@@ -141,13 +144,13 @@ export default function MatchDetailScreen() {
           <View style={styles.formRow}>
             <View style={styles.formTeam}>
               <Text style={[styles.formTeamName, { color: colors.foreground }]}>{homeTeam?.shortName || match.homeTeam?.shortName}</Text>
-              <FormIndicator form={match.homeStats.form} />
+              <FormIndicator form={match.homeStats?.form ?? []} />
             </View>
             <View style={styles.formTeam}>
               <Text style={[styles.formTeamName, { color: colors.foreground, textAlign: "right" }]}>
                 {awayTeam?.shortName || match.awayTeam?.shortName}
               </Text>
-              <FormIndicator form={match.awayStats.form} />
+              <FormIndicator form={match.awayStats?.form ?? []} />
             </View>
           </View>
         </View>
@@ -157,40 +160,40 @@ export default function MatchDetailScreen() {
           <SectionHeader title="Estadísticas Clave" />
           <StatCompareRow
             label="Goles por partido"
-            home={match.homeStats.goalsPerGame.toFixed(1)}
-            away={match.awayStats.goalsPerGame.toFixed(1)}
+            home={match.homeStats?.goalsPerGame.toFixed(1) ?? "0"}
+            away={match.awayStats?.goalsPerGame.toFixed(1) ?? "0"}
             homeColor={colors.foreground}
             awayColor={colors.foreground}
             mutedColor={colors.muted}
           />
           <StatCompareRow
             label="Goles concedidos"
-            home={match.homeStats.concededPerGame.toFixed(1)}
-            away={match.awayStats.concededPerGame.toFixed(1)}
+            home={match.homeStats?.concededPerGame.toFixed(1) ?? "0"}
+            away={match.awayStats?.concededPerGame.toFixed(1) ?? "0"}
             homeColor={colors.foreground}
             awayColor={colors.foreground}
             mutedColor={colors.muted}
           />
           <StatCompareRow
             label="Posesión promedio"
-            home={`${match.homeStats.possession}%`}
-            away={`${match.awayStats.possession}%`}
+            home={`${match.homeStats?.possession}%`}
+            away={`${match.awayStats?.possession}%`}
             homeColor={colors.foreground}
             awayColor={colors.foreground}
             mutedColor={colors.muted}
           />
           <StatCompareRow
             label="Posición en liga"
-            home={`#${match.homeStats.position}`}
-            away={`#${match.awayStats.position}`}
+            home={`#${match.homeStats?.position}`}
+            away={`#${match.awayStats?.position}`}
             homeColor={colors.foreground}
             awayColor={colors.foreground}
             mutedColor={colors.muted}
           />
           <StatCompareRow
             label="Puntos"
-            home={`${match.homeStats.points}`}
-            away={`${match.awayStats.points}`}
+            home={`${match.homeStats?.points}`}
+            away={`${match.awayStats?.points}`}
             homeColor="#00C853"
             awayColor="#1565C0"
             mutedColor={colors.muted}
@@ -202,15 +205,15 @@ export default function MatchDetailScreen() {
           <SectionHeader title="Historial de Enfrentamientos" />
           <View style={styles.h2hRow}>
             <View style={styles.h2hBlock}>
-              <Text style={[styles.h2hValue, { color: "#00C853" }]}>{match.headToHead.homeWins}</Text>
+              <Text style={[styles.h2hValue, { color: "#00C853" }]}>{match.headToHead?.homeWins}</Text>
               <Text style={[styles.h2hLabel, { color: colors.muted }]}>{homeTeam?.shortName || match.homeTeam?.shortName}</Text>
             </View>
             <View style={styles.h2hBlock}>
-              <Text style={[styles.h2hValue, { color: colors.muted }]}>{match.headToHead.draws}</Text>
+              <Text style={[styles.h2hValue, { color: colors.muted }]}>{match.headToHead?.draws}</Text>
               <Text style={[styles.h2hLabel, { color: colors.muted }]}>Empates</Text>
             </View>
             <View style={styles.h2hBlock}>
-              <Text style={[styles.h2hValue, { color: "#1565C0" }]}>{match.headToHead.awayWins}</Text>
+              <Text style={[styles.h2hValue, { color: "#1565C0" }]}>{match.headToHead?.awayWins}</Text>
               <Text style={[styles.h2hLabel, { color: colors.muted }]}>{awayTeam?.shortName || match.awayTeam?.shortName}</Text>
             </View>
           </View>
@@ -220,19 +223,19 @@ export default function MatchDetailScreen() {
               style={[
                 styles.h2hBarSegment,
                 {
-                  flex: match.headToHead.homeWins,
+                  flex: match.headToHead?.homeWins,
                   backgroundColor: "#00C853",
                   borderTopLeftRadius: 4,
                   borderBottomLeftRadius: 4,
                 },
               ]}
             />
-            <View style={[styles.h2hBarSegment, { flex: match.headToHead.draws, backgroundColor: "#5A7A96" }]} />
+            <View style={[styles.h2hBarSegment, { flex: match.headToHead?.draws, backgroundColor: "#5A7A96" }]} />
             <View
               style={[
                 styles.h2hBarSegment,
                 {
-                  flex: match.headToHead.awayWins,
+                  flex: match.headToHead?.awayWins,
                   backgroundColor: "#1565C0",
                   borderTopRightRadius: 4,
                   borderBottomRightRadius: 4,
@@ -244,7 +247,7 @@ export default function MatchDetailScreen() {
           {/* Last Matches */}
           <View style={styles.lastMatchesContainer}>
             <Text style={[styles.lastMatchesTitle, { color: colors.muted }]}>Últimos Enfrentamientos</Text>
-            {match.headToHead.lastMatches.map((lm: any, i: number) => {
+            {match.headToHead?.lastMatches.map((lm: any, i: number) => {
               const isHome = lm.homeTeamId === match.homeTeamId;
               const homeTeamName = isHome ? (homeTeam?.shortName || match.homeTeam?.shortName) : (awayTeam?.shortName || match.awayTeam?.shortName);
               const awayTeamName = isHome ? (awayTeam?.shortName || match.awayTeam?.shortName) : (homeTeam?.shortName || match.homeTeam?.shortName);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { footballDataApi, ApiMatch } from "@/services/footballDataApi";
+import { footballDataApi, ApiMatch } from "@/core/infrastructure/http/football-data";
 import CacheService from "@/services/cacheService";
 
 interface UseFootballApiState<T> {

@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, FlatList, ScrollView, Pressable } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
-import { useFootball } from "@/application/hooks/useFootball";
+import { useLeagues, useTeams } from "@/application/hooks";
+import { useStandingsApi } from "@/application/hooks/api";
 import { useColors } from "@/application/hooks/use-colors";
-import { StandingEntry } from "@/types/football";
+import { StandingEntryModel } from "@/core/domain/models";
 
 export default function LeaguesScreen() {
-  const { leagues, getStandings, getTeam } = useFootball();
+  const { leagues } = useLeagues();
+
+  const { getTeam } = useTeams();
   const colors = useColors();
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]?.id ?? "pl");
-
-  const standings = getStandings(selectedLeague);
+  const { data: standings } = useStandingsApi(selectedLeague);
   const selectedLeagueData = leagues.find((l) => l.id === selectedLeague);
 
   return (
@@ -114,7 +116,7 @@ function StandingRow({
   teamEmoji,
   colors,
 }: {
-  entry: StandingEntry;
+  entry: StandingEntryModel;
   index: number;
   teamName: string;
   teamEmoji: string;
