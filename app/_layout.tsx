@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
-import { ThemeProvider } from "@/lib/theme-provider";
+import { ThemeProvider } from "@/core/presentation/provider/theme-provider";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -16,8 +16,8 @@ import {
 } from "react-native-safe-area-context";
 import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
-import { trpc, createTRPCClient } from "@/lib/trpc";
-import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
+import { trpc, createTRPCClient } from "@/core/infrastructure/utils/trpc";
+import { DiFactory } from "@/core/factories";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -32,10 +32,11 @@ export default function RootLayout() {
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
+  const mainRuntimeRepository = DiFactory.getMainRuntimeRepository();
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
-    initManusRuntime();
+    mainRuntimeRepository.initRuntime();
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
@@ -45,7 +46,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
-    const unsubscribe = subscribeSafeAreaInsets(handleSafeAreaUpdate);
+    const unsubscribe = mainRuntimeRepository.subscribeSafeAreaInsets(handleSafeAreaUpdate);
     return () => unsubscribe();
   }, [handleSafeAreaUpdate]);
 
