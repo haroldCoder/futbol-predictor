@@ -10,7 +10,7 @@ export class ApiCompetitionsService extends FootballDataApi {
      */
     async getCompetitions(): Promise<ApiCompetition[]> {
         const response = await this.client.get("/competitions");
-        return response.data;
+        return response.data.competitions;
     }
 
     /**

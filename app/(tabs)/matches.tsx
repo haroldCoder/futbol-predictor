@@ -24,7 +24,7 @@ export default function MatchesScreen() {
   const selectedLeagueObj = leagueOptions.find(l => (l.id.toString() === selectedLeague));
 
   // Convertir y filtrar partidos
-  const convertedMatches = allMatches?.map(FootballDataMapper.toDomain) ?? [];
+  const convertedMatches = allMatches ?? [];
   const filteredMatches = useMemo(() => convertedMatches.filter((m) => {
     const matchesLeague = selectedLeague === "all" || m.leagueId === (selectedLeagueObj as any)?.code?.toLowerCase();
     const searchLower = searchText.toLowerCase();

@@ -14,7 +14,6 @@ export class FootballDataMatchRepositoryImpl implements MatchRepository {
 
     async getAll(): Promise<MatchModel[]> {
         const response = await this.matchesService.getTodayMatches();
-
         return response.map(FootballDataMapper.toDomain);
     }
 
@@ -34,6 +33,12 @@ export class FootballDataMatchRepositoryImpl implements MatchRepository {
 
     async getLiveMatches(): Promise<MatchModel[]> {
         const response = await this.competitionsService.getMatchesByCompetition("BL1", "LIVE");
+
+        return response.map(FootballDataMapper.toDomain);
+    }
+
+    async getHeadToHead(teamId1: string, teamId2: string): Promise<MatchModel[]> {
+        const response = await this.matchesService.getHeadToHead(teamId1, teamId2);
 
         return response.map(FootballDataMapper.toDomain);
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { footballDataApi, ApiMatch } from "@/core/infrastructure/http/football-data";
+import { footballDataApi, ApiMatchData } from "@/core/infrastructure/http/football-data";
 import CacheService from "@/services/cacheService";
 
 interface UseFootballApiState<T> {
@@ -9,8 +9,8 @@ interface UseFootballApiState<T> {
     refetch: () => Promise<void>;
 }
 
-export function useTeamMatchesApi(teamId: number | null): UseFootballApiState<ApiMatch[]> {
-    const [data, setData] = useState<ApiMatch[] | null>(null);
+export function useTeamMatchesApi(teamId: number | null): UseFootballApiState<ApiMatchData[]> {
+    const [data, setData] = useState<ApiMatchData[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 

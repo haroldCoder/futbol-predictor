@@ -10,7 +10,6 @@ interface PredictionBarProps {
 
 export function PredictionBar({ prediction, compact = false }: PredictionBarProps) {
   const colors = useColors();
-  console.log(prediction);
 
   const { homeWin, draw, awayWin } = prediction;
 

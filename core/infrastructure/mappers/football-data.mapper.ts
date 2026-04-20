@@ -1,30 +1,32 @@
-import { ApiMatch } from "@/core/infrastructure/http/football-data/interfaces";
 import { MatchModel } from "@/core/domain/models";
 import { MatchStatus } from "@/core/domain/types";
 import { PredictionService } from "@/core/domain/services/prediction.service";
 import { awayStats, homeStats } from "../constants/football-data";
+import { ApiMatchData } from "../http/football-data/interfaces";
+import { formatDate, formatTime } from "@/core/utils";
 
 export class FootballDataMapper {
-    static toDomain(apiMatch: ApiMatch): MatchModel {
+    static toDomain(apiMatch: ApiMatchData): MatchModel {
         const prediction = PredictionService.generate(apiMatch);
+
         return {
             id: apiMatch.id.toString(),
-            leagueId: apiMatch.competition.code.toLowerCase(),
+            leagueId: apiMatch.competition?.code?.toLowerCase() || "",
 
-            homeTeamId: apiMatch.homeTeam.id.toString(),
-            awayTeamId: apiMatch.awayTeam.id.toString(),
+            homeTeamId: "",
+            awayTeamId: "",
 
-            date: FootballDataMapper.formatDate(apiMatch.utcDate),
-            time: FootballDataMapper.formatTime(apiMatch.utcDate),
+            date: formatDate(apiMatch.utcDate),
+            time: formatTime(apiMatch.utcDate),
 
             stadium: "Estadio",
             status: FootballDataMapper.mapStatus(apiMatch.status),
 
             score:
-                apiMatch.score.fullTime.home !== null
+                apiMatch.score?.fullTime.home !== null
                     ? {
-                        home: apiMatch.score.fullTime.home,
-                        away: apiMatch.score.fullTime.away ?? 0,
+                        home: apiMatch.score?.fullTime.home ?? 0,
+                        away: apiMatch.score?.fullTime.away ?? 0,
                     }
                     : undefined,
 
@@ -73,16 +75,5 @@ export class FootballDataMapper {
         };
 
         return map[status] || "upcoming";
-    }
-
-    private static formatDate(date: string): string {
-        return new Date(date).toISOString().split("T")[0];
-    }
-
-    private static formatTime(date: string): string {
-        return new Date(date).toLocaleTimeString("es-ES", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
     }
 }

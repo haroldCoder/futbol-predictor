@@ -1,144 +1,68 @@
-import { useState, useEffect, useCallback } from "react";
-import { footballDataApi, ApiMatch } from "@/core/infrastructure/http/football-data";
-import CacheService from "@/services/cacheService";
+import { useQuery } from "@tanstack/react-query";
+import { DiFactory } from "@/core/factories";
+import { MatchModel } from "@/core/domain/models";
 
-interface UseFootballApiState<T> {
-    data: T | null;
-    loading: boolean;
-    error: Error | null;
-    refetch: () => Promise<void>;
+const matchRepository = DiFactory.getMatchRepository();
+
+export function useTodayMatches() {
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["today_matches"],
+        queryFn: () => matchRepository.getAll(),
+        staleTime: 1000 * 60 * 15, // 15 minutos
+    });
+
+    return {
+        data: data ?? null,
+        loading: isLoading,
+        error: error instanceof Error ? error : null,
+        refetch: async () => { await refetch(); }
+    };
 }
 
-export function useTodayMatches(): UseFootballApiState<ApiMatch[]> {
-    const [data, setData] = useState<ApiMatch[] | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+export function useCompetitionMatches(competitionCode: string) {
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["matches", competitionCode],
+        queryFn: () => matchRepository.getByLeague(competitionCode),
+        enabled: !!competitionCode,
+        staleTime: 1000 * 60 * 15,
+    });
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const matches = await CacheService.getOrFetch(
-                "today_matches",
-                () => footballDataApi.getTodayMatches(),
-                15, // Cache por 15 minutos
-            );
-            setData(matches);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error("Unknown error"));
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
+    return {
+        data: data ?? null,
+        loading: isLoading,
+        error: error instanceof Error ? error : null,
+        refetch: async () => { await refetch(); }
+    };
 }
 
-export function useCompetitionMatches(competitionCode: string): UseFootballApiState<ApiMatch[]> {
-    const [data, setData] = useState<ApiMatch[] | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+export function useMatch(matchId: string) {
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["match", matchId],
+        queryFn: () => matchRepository.getById(matchId),
+        enabled: !!matchId,
+        staleTime: 1000 * 60 * 15,
+    });
 
-    const fetchData = useCallback(async () => {
-        if (!competitionCode) {
-            setData(null);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        try {
-            const matches = await CacheService.getOrFetch(
-                `matches_${competitionCode}`,
-                () => footballDataApi.getMatchesByCompetition(competitionCode),
-                15,
-            );
-            setData(matches);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error("Unknown error"));
-        } finally {
-            setLoading(false);
-        }
-    }, [competitionCode]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
+    return {
+        data: data ?? null,
+        loading: isLoading,
+        error: error instanceof Error ? error : null,
+        refetch: async () => { await refetch(); }
+    };
 }
 
-export function useMatch(matchId: string): UseFootballApiState<ApiMatch> {
-    const [data, setData] = useState<ApiMatch | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+export function useHeadToHead(teamId1: string | null, teamId2: string | null) {
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["h2h", teamId1, teamId2],
+        queryFn: () => matchRepository.getHeadToHead(teamId1!, teamId2!),
+        enabled: !!teamId1 && !!teamId2,
+        staleTime: 1000 * 60 * 60 * 2, // 2 horas
+    });
 
-    const fetchData = useCallback(async () => {
-        if (!matchId) {
-            setData(null);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        try {
-            const match = await CacheService.getOrFetch(
-                `match_${matchId}`,
-                () => footballDataApi.getMatch(matchId),
-                15,
-            );
-            setData(match);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error("Unknown error"));
-        } finally {
-            setLoading(false);
-        }
-    }, [matchId]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
-}
-
-export function useHeadToHead(teamId1: number | null, teamId2: number | null): UseFootballApiState<ApiMatch[]> {
-    const [data, setData] = useState<ApiMatch[] | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-
-    const fetchData = useCallback(async () => {
-        if (!teamId1 || !teamId2) {
-            setData(null);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        try {
-            const matches = await CacheService.getOrFetch(
-                `h2h_${teamId1}_${teamId2}`,
-                () => footballDataApi.getHeadToHead(teamId1, teamId2),
-                120, // Cache por 2 horas
-            );
-            setData(matches);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error("Unknown error"));
-        } finally {
-            setLoading(false);
-        }
-    }, [teamId1, teamId2]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
+    return {
+        data: data ?? null,
+        loading: isLoading,
+        error: error instanceof Error ? error : null,
+        refetch: async () => { await refetch(); }
+    };
 }

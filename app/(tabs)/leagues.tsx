@@ -144,13 +144,7 @@ function StandingRow({
           {teamName}
         </Text>
       </View>
-      <Text style={[rowStyles.colNum, { color: colors.muted }]}>{entry.played}</Text>
-      <Text style={[rowStyles.colNum, { color: "#00C853" }]}>{entry.wins}</Text>
-      <Text style={[rowStyles.colNum, { color: colors.muted }]}>{entry.draws}</Text>
-      <Text style={[rowStyles.colNum, { color: "#F44336" }]}>{entry.losses}</Text>
-      <Text style={[rowStyles.colNum, { color: entry.goalDifference >= 0 ? "#00C853" : "#F44336" }]}>
-        {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
-      </Text>
+
       <Text style={[rowStyles.colPts, { color: "#E8F4FD", fontWeight: "800" }]}>{entry.points}</Text>
     </View>
   );

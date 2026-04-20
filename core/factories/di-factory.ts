@@ -1,5 +1,5 @@
-import { AuthRepository, MainRuntimeRepository, MatchRepository } from "@/core/domain/repositories";
-import { AuthRepositoryImpl, MainRuntimeRepositoryImpl, FootballDataMatchRepositoryImpl } from "@/core/infrastructure/repositories";
+import { AuthRepository, MainRuntimeRepository, MatchRepository, StadingRepository } from "@/core/domain/repositories";
+import { AuthRepositoryImpl, MainRuntimeRepositoryImpl, FootballDataMatchRepositoryImpl, FootballDataStadingRepositoryImpl } from "@/core/infrastructure/repositories";
 
 export class DiFactory {
     static getMainRuntimeRepository(): MainRuntimeRepository {
@@ -12,5 +12,9 @@ export class DiFactory {
 
     static getMatchRepository(): MatchRepository {
         return new FootballDataMatchRepositoryImpl();
+    }
+
+    static getStadingRepository(): StadingRepository {
+        return new FootballDataStadingRepositoryImpl();
     }
 }

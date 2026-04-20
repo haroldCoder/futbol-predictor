@@ -1,7 +1,7 @@
 import { League, Team, Match, StandingEntry } from "@/types/football";
 
 export const LEAGUES: League[] = [
-  { id: "ucl", name: "Champions League", shortName: "UCL", country: "Europa", emoji: "🏆", color: "#1565C0" },
+  { id: "cl", name: "Champions League", shortName: "UCL", country: "Europa", emoji: "🏆", color: "#1565C0" },
   { id: "pl", name: "Premier League", shortName: "Premier", country: "Inglaterra", emoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", color: "#3D0099" },
   { id: "laliga", name: "La Liga", shortName: "LaLiga", country: "España", emoji: "🇪🇸", color: "#EE0000" },
   { id: "seriea", name: "Serie A", shortName: "Serie A", country: "Italia", emoji: "🇮🇹", color: "#0066CC" },

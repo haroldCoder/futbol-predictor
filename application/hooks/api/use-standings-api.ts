@@ -1,45 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
-import { footballDataApi } from "@/core/infrastructure/http/football-data";
-import CacheService from "@/services/cacheService";
+import { useQuery } from "@tanstack/react-query";
+import { DiFactory } from "@/core/factories";
 
-interface UseFootballApiState<T> {
-    data: T | null;
-    loading: boolean;
-    error: Error | null;
-    refetch: () => Promise<void>;
-}
+export function useStandingsApi(competitionCode: string) {
+    const stadingRepository = DiFactory.getStadingRepository();
 
-export function useStandingsApi(competitionCode: string): UseFootballApiState<any> {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["standings", competitionCode],
+        queryFn: () => stadingRepository.getByLeague(competitionCode),
+        enabled: !!competitionCode,
+        staleTime: 1000 * 60 * 60, // 1 hora
+    });
 
-    const fetchData = useCallback(async () => {
-        if (!competitionCode) {
-            setData(null);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        try {
-            const standings = await CacheService.getOrFetch(
-                `standings_${competitionCode}`,
-                () => footballDataApi.getStandings(competitionCode),
-                60, // Cache por 1 hora
-            );
-            setData(standings);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error("Unknown error"));
-        } finally {
-            setLoading(false);
-        }
-    }, [competitionCode]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
+    return {
+        data: data ?? null,
+        loading: isLoading,
+        error: error instanceof Error ? error : null,
+        refetch: async () => { await refetch(); }
+    };
 }

@@ -7,7 +7,6 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { useTodayMatches } from "@/application/hooks/api";
 import { useColors } from "@/application/hooks/use-colors";
-import { FootballDataMapper } from "@/core/infrastructure/mappers";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -15,7 +14,7 @@ export default function HomeScreen() {
   const { data: matches, loading, error } = useTodayMatches();
 
   // Convertir ApiMatch a Match y separar por estado
-  const convertedMatches = matches?.map(FootballDataMapper.toDomain) ?? [];
+  const convertedMatches = matches ?? [];
   const upcomingMatches = convertedMatches.filter((m) => m.status === "upcoming").slice(0, 5);
   const liveMatches = convertedMatches.filter((m) => m.status === "live");
   const featuredMatch = liveMatches[0] ?? upcomingMatches[0];
