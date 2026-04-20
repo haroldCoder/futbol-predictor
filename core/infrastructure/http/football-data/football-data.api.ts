@@ -1,73 +1,9 @@
+import { getApiKey } from "@/core/utils";
 import axios, { AxiosInstance } from "axios";
-import Constants from "expo-constants";
+import { ApiCompetition, ApiStanding, ApiMatchData, ApiTeam } from "./interfaces";
 
 const BASE_URL = "https://api.football-data.org/v4";
 
-// Obtener API key desde expo-constants (configurado en app.config.ts)
-const getApiKey = (): string => {
-    const apiKey = Constants.expoConfig?.extra?.footballDataApiKey || "";
-    if (!apiKey) {
-        console.warn(
-            "Football Data API key not configured. Please set EXPO_PUBLIC_FOOTBALL_DATA_API_KEY environment variable.",
-        );
-    }
-    return apiKey;
-};
-
-interface ApiCompetition {
-    id: number;
-    name: string;
-    code: string;
-    type: string;
-    emblem: string;
-}
-
-interface ApiTeam {
-    id: number;
-    name: string;
-    shortName: string;
-    tla: string;
-    crest: string;
-}
-
-interface ApiMatch {
-    id: number;
-    utcDate: string;
-    status: "TIMED" | "LIVE" | "IN_PLAY" | "PAUSED" | "FINISHED" | "POSTPONED" | "CANCELLED" | "SUSPENDED";
-    stage: string;
-    group: string | null;
-    lastUpdated: string;
-    homeTeam: ApiTeam;
-    awayTeam: ApiTeam;
-    score: {
-        winner: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
-        duration: string;
-        fullTime: { home: number | null; away: number | null };
-        halfTime: { home: number | null; away: number | null };
-    };
-    competition: ApiCompetition;
-    season: { id: number; startDate: string; endDate: string; currentMatchday: number };
-    referees: Array<{ id: number; name: string; type: string }>;
-}
-
-interface ApiStanding {
-    stage: string;
-    type: string;
-    group: string | null;
-    table: Array<{
-        position: number;
-        team: ApiTeam;
-        playedGames: number;
-        form: string;
-        won: number;
-        draw: number;
-        lost: number;
-        points: number;
-        goalsFor: number;
-        goalsAgainst: number;
-        goalDifference: number;
-    }>;
-}
 
 class FootballDataApi {
     private client: AxiosInstance;
@@ -110,7 +46,7 @@ class FootballDataApi {
     /**
      * Obtener partidos de una competición específica
      */
-    async getMatchesByCompetition(competitionCode: string, status?: string): Promise<ApiMatch[]> {
+    async getMatchesByCompetition(competitionCode: string, status?: string): Promise<ApiMatchData[]> {
         try {
             const params: any = {};
             if (status) params.status = status;
@@ -126,7 +62,7 @@ class FootballDataApi {
     /**
      * Obtener partidos de hoy
      */
-    async getTodayMatches(): Promise<ApiMatch[]> {
+    async getTodayMatches(): Promise<ApiMatchData[]> {
         try {
             const response = await this.client.get("/matches", {
                 params: {
@@ -169,7 +105,7 @@ class FootballDataApi {
     /**
      * Obtener partidos de un equipo específico
      */
-    async getTeamMatches(teamId: number, limit: number = 10): Promise<ApiMatch[]> {
+    async getTeamMatches(teamId: number, limit: number = 10): Promise<ApiMatchData[]> {
         try {
             const response = await this.client.get(`/teams/${teamId}/matches`, {
                 params: {
@@ -187,7 +123,7 @@ class FootballDataApi {
     /**
      * Obtener enfrentamientos históricos entre dos equipos
      */
-    async getHeadToHead(teamId1: number, teamId2: number): Promise<ApiMatch[]> {
+    async getHeadToHead(teamId1: number, teamId2: number): Promise<ApiMatchData[]> {
         try {
             const response = await this.client.get(`/teams/${teamId1}/matches`, {
                 params: {
@@ -206,7 +142,7 @@ class FootballDataApi {
     /**
      * Obtener detalles de un partido específico
      */
-    async getMatch(matchId: string): Promise<ApiMatch> {
+    async getMatch(matchId: string): Promise<ApiMatchData> {
         try {
             const response = await this.client.get(`/matches/${matchId}`);
             return response.data;
@@ -218,4 +154,4 @@ class FootballDataApi {
 }
 
 export const footballDataApi = new FootballDataApi();
-export type { ApiMatch, ApiCompetition, ApiTeam, ApiStanding };
+export type { ApiMatchData, ApiCompetition, ApiTeam, ApiStanding };
