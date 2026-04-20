@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, ScrollView, Pressable } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, FlatList, ScrollView, Pressable, Image } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
-import { useLeagues, useTeams } from "@/application/hooks";
+import { useFetchTeamsApi, useLeagues, useTeams } from "@/application/hooks";
 import { useStandingsApi } from "@/application/hooks/api";
 import { useColors } from "@/application/hooks/use-colors";
 import { StandingEntryModel } from "@/core/domain/models";
@@ -9,11 +9,13 @@ import { StandingEntryModel } from "@/core/domain/models";
 export default function LeaguesScreen() {
   const { leagues } = useLeagues();
 
-  const { getTeam } = useTeams();
+  //const { getTeam } = useTeams();
   const colors = useColors();
   const [selectedLeague, setSelectedLeague] = useState(leagues[0]?.id ?? "pl");
-  const { data: standings } = useStandingsApi(selectedLeague);
+  const { data: standings } = useStandingsApi(selectedLeague.toUpperCase());
+
   const selectedLeagueData = leagues.find((l) => l.id === selectedLeague);
+  const standingsData = useMemo(() => standings ?? [], [standings]);
 
   return (
     <ScreenContainer containerClassName="bg-background">
@@ -68,7 +70,7 @@ export default function LeaguesScreen() {
       </View>
 
       {/* Standings Table */}
-      {standings.length > 0 ? (
+      {standingsData.length > 0 ? (
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -83,14 +85,14 @@ export default function LeaguesScreen() {
           </View>
 
           <FlatList
-            data={standings}
-            keyExtractor={(item) => item.teamId}
+            data={standingsData}
+            keyExtractor={(item) => item.teamId.toString()}
             renderItem={({ item, index }) => (
               <StandingRow
                 entry={item}
                 index={index}
-                teamName={getTeam(item.teamId)?.shortName ?? item.teamId}
-                teamEmoji={getTeam(item.teamId)?.emoji ?? "⚽"}
+                teamName={item.shortName ?? item.teamId.toString()}
+                teamEmoji={item.emoji ?? "⚽"}
                 colors={colors}
               />
             )}
@@ -139,7 +141,7 @@ function StandingRow({
         {entry.position}
       </Text>
       <View style={rowStyles.colTeam}>
-        <Text style={rowStyles.teamEmoji}>{teamEmoji}</Text>
+        <Image source={{ uri: teamEmoji }} style={{ width: 20, height: 20 }} />
         <Text style={[rowStyles.teamName, { color: colors.foreground }]} numberOfLines={1}>
           {teamName}
         </Text>

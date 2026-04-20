@@ -1,8 +1,9 @@
 export interface TeamModel {
-    id: string;
+    id: number;
     name: string;
     shortName: string;
     emoji: string;
     color: string;
-    leagueId: string;
+    country: string;
+    tla: string;
 }

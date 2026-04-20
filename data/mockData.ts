@@ -23,7 +23,7 @@ export const TEAMS: Team[] = [
   { id: "atm", name: "Atlético Madrid", shortName: "Atlético", emoji: "🔴", color: "#CB3524", leagueId: "laliga" },
   { id: "sev", name: "Sevilla", shortName: "Sevilla", emoji: "⚪", color: "#D4021D", leagueId: "laliga" },
   // Champions League (multi-league)
-  { id: "bay", name: "Bayern Munich", shortName: "Bayern", emoji: "🔴", color: "#DC052D", leagueId: "bundesliga" },
+  { id: "fcb", name: "Bayern Munich", shortName: "Bayern", emoji: "🔴", color: "#DC052D", leagueId: "bundesliga" },
   { id: "psg", name: "Paris Saint-Germain", shortName: "PSG", emoji: "🔵", color: "#004170", leagueId: "ligue1" },
   { id: "int", name: "Inter Milan", shortName: "Inter", emoji: "⚫", color: "#010E80", leagueId: "seriea" },
   { id: "juv", name: "Juventus", shortName: "Juve", emoji: "⚫", color: "#000000", leagueId: "seriea" },

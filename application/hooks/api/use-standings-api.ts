@@ -12,7 +12,7 @@ export function useStandingsApi(competitionCode: string) {
     });
 
     return {
-        data: data ?? null,
+        data: data ?? [],
         loading: isLoading,
         error: error instanceof Error ? error : null,
         refetch: async () => { await refetch(); }

@@ -5,8 +5,12 @@ import { TeamModel } from "@/core/domain/models";
 export function useTeams() {
     const teams = useMemo(() => TEAMS, []);
 
-    const getTeam = (id: string): TeamModel | undefined =>
-        teams.find((t) => t.id === id);
+    const getTeam = (id: number | string): TeamModel | undefined => {
+        if (typeof id === "string") {
+            id = id.toLowerCase();
+        }
+        return teams.find((t) => t.id === id);
+    }
 
     return { teams, getTeam };
 }

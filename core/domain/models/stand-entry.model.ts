@@ -1,6 +1,6 @@
 export interface StandingEntryModel {
     position: number;
-    team: number;
+    teamId: number;
     playedGames: number;
     form: string;
     won: number;
@@ -10,4 +10,7 @@ export interface StandingEntryModel {
     goalsFor: number;
     goalsAgainst: number;
     goalDifference: number;
+    tla: string;
+    shortName: string;
+    emoji: string;
 }
