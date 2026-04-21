@@ -8,6 +8,8 @@ export function useCompetitions() {
         queryKey: ["competitions"],
         queryFn: () => competitionsService.getCompetitions(),
         staleTime: 1000 * 60 * 60, // 1 hora
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     return {

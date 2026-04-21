@@ -12,7 +12,7 @@ interface PredictionSectionProps {
 export const PredictionSection = ({ match }: PredictionSectionProps) => {
     const colors = useColors();
     const predictedTeam =
-        match.awayTeam?.shortName || match.awayTeamId.toUpperCase();
+        match.awayTeam?.shortName || match.awayTeamId;
 
     return (
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>

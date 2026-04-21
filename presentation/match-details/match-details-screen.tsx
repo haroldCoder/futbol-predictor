@@ -6,14 +6,13 @@ import { HeadToHead } from './components/head-to-head';
 import { LastMatches } from './components/last-matches';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ScreenContainer } from '@/components/screen-container';
-import { useRoute } from '@react-navigation/native';
 import { useGetMatchId, useMatch } from '@/application/hooks';
 import { useLocalSearchParams } from 'expo-router';
 import { useColors } from '@/application/hooks/use-colors';
 
 export const MatchDetailsScreen = () => {
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { data: mockMatch, isLoading: mockLoading } = useGetMatchId(id ?? "");
+    const { data: mockMatch, loading: mockLoading } = useGetMatchId(id ?? "");
     const colors = useColors();
     // 2. Intentar obtener de API si no es mock o si queremos datos frescos
     const { data: apiMatchData, loading: apiLoading, error: apiError } = useMatch(id ?? "");

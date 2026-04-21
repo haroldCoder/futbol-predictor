@@ -9,9 +9,10 @@ export class FootballDataMapper {
             id: apiMatch.id.toString(),
             league: apiMatch.competition?.name || "",
             leagueLogo: apiMatch.competition?.emblem || "",
+            leagueCode: apiMatch.competition?.code || "",
 
-            homeTeamId: "",
-            awayTeamId: "",
+            homeTeamId: apiMatch.homeTeam.id,
+            awayTeamId: apiMatch.awayTeam.id,
 
             date: formatDate(apiMatch.utcDate),
             time: formatTime(apiMatch.utcDate),

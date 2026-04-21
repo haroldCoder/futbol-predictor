@@ -5,7 +5,7 @@ export * from "./football/use-teams";
 export * from "./football/use-matches";
 export * from "./football/use-standings";
 export * from "./football/use-accuracy";
-export * from "./football/use-get-match-id";
+export * from "./api/use-get-match-id-api";
 export * from "./api/use-competitions-api";
 export * from "./api/use-matches-api";
 export * from "./api/use-standings-api";

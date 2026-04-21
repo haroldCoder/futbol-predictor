@@ -7,8 +7,9 @@ export interface MatchModel {
     id: string;
     league: string;
     leagueLogo: string;
-    homeTeamId: string;
-    awayTeamId: string;
+    leagueCode: string;
+    homeTeamId: number;
+    awayTeamId: number;
     date: string;       // ISO date string
     time: string;       // "HH:MM"
     stadium: string;

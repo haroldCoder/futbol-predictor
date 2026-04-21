@@ -60,6 +60,10 @@ export default function RootLayout() {
             refetchOnWindowFocus: false,
             // Retry failed requests once
             retry: 1,
+            // Keep data "fresh" for 5 minutes to avoid re-fetching on screen mount
+            staleTime: 1000 * 60 * 5,
+            // Keep data in cache for 10 minutes even if unused
+            gcTime: 1000 * 60 * 10,
           },
         },
       }),
