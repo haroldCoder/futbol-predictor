@@ -1,5 +1,5 @@
 import { MatchRepository } from "@/core/domain/repositories";
-import { MatchModel } from "@/core/domain/models";
+import { ConfrontationHistoryModel, LastMatchesModel, MatchModel } from "@/core/domain/models";
 import { FootballDataMapper } from "@/core/infrastructure/mappers";
 import { ApiCompetitionsService, ApiMatchesService } from "../http/football-data";
 
@@ -41,5 +41,17 @@ export class FootballDataMatchRepositoryImpl implements MatchRepository {
         const response = await this.matchesService.getHeadToHead(teamId1, teamId2);
 
         return response.map(FootballDataMapper.toDomain);
+    }
+
+    async getLastMatches(teamId: number): Promise<LastMatchesModel> {
+        const response = await this.matchesService.getLastMatches(teamId);
+
+        return response;
+    }
+
+    async getPersonalizedMatches(teamMainId: number, teamSecondId: number, limit: number): Promise<ConfrontationHistoryModel> {
+        const response = await this.matchesService.getPersonalizedMatches(teamMainId, teamSecondId, limit);
+
+        return response;
     }
 }

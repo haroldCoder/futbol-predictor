@@ -1,6 +1,7 @@
 import { StadingRepository } from "@/core/domain/repositories";
-import { StandingEntryModel } from "@/core/domain/models";
+import { DataTeamsStadingModel, StandingEntryModel } from "@/core/domain/models";
 import { ApiStanding, ApiStandingsService } from "../http/football-data";
+import { FootballDataStadingTeamsMapper } from "../mappers";
 
 export class FootballDataStadingRepositoryImpl implements StadingRepository {
     private stadingService: ApiStandingsService;
@@ -19,5 +20,14 @@ export class FootballDataStadingRepositoryImpl implements StadingRepository {
             shortName: entry.team.shortName,
             emoji: entry.team.crest
         })) ?? [];
+    }
+
+    async getDataWithTeams(leagueId: string, homeTeamId: number, awayTeamId: number): Promise<DataTeamsStadingModel> {
+        const response: ApiStanding | null = await this.stadingService.getStandings(leagueId);
+
+        const homeTeam = response?.standings[0].table.find((entry) => entry.team.id === homeTeamId);
+        const awayTeam = response?.standings[0].table.find((entry) => entry.team.id === awayTeamId);
+
+        return FootballDataStadingTeamsMapper.toDomain(homeTeam, awayTeam);
     }
 }

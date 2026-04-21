@@ -5,3 +5,6 @@ export * from './prediction.model';
 export * from './head-to-head.model';
 export * from './team-stats.model';
 export * from './stand-entry.model';
+export * from './last-matches.model';
+export * from './confrontation-history.model';
+export * from './data-teams-stading.model';

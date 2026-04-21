@@ -1,14 +1,10 @@
 import { MatchModel } from "@/core/domain/models";
 import { MatchStatus } from "@/core/domain/types";
-import { PredictionService } from "@/core/domain/services/prediction.service";
-import { awayStats, homeStats } from "../constants/football-data";
 import { ApiMatchData } from "../http/football-data/interfaces";
 import { formatDate, formatTime } from "@/core/utils";
 
 export class FootballDataMapper {
     static toDomain(apiMatch: ApiMatchData): MatchModel {
-        const prediction = PredictionService.generate(apiMatch);
-
         return {
             id: apiMatch.id.toString(),
             league: apiMatch.competition?.name || "",
@@ -46,9 +42,9 @@ export class FootballDataMapper {
             },
 
             // Valores vacíos, luego dominio los llena
-            prediction,
-            homeStats,
-            awayStats,
+            prediction: null,
+            homeStats: null,
+            awayStats: null,
 
             headToHead: {
                 homeWins: Math.floor(Math.random() * 10),
