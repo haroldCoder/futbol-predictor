@@ -24,12 +24,12 @@ export function PredictionBar({ prediction, compact = false }: PredictionBarProp
       <View style={styles.compactContainer}>
         <View style={[styles.compactBar, { backgroundColor: colors.border }]}>
           <View style={[styles.compactSegment, { width: `${homeWin}%`, backgroundColor: "#00C853" }]} />
-          <View style={[styles.compactSegment, { width: `${draw}%`, backgroundColor: "#7B9BB5" }]} />
+          <View style={[styles.compactSegment, { width: `${draw}%`, backgroundColor: "#FFFFFF" }]} />
           <View style={[styles.compactSegment, { width: `${awayWin}%`, backgroundColor: "#1565C0" }]} />
         </View>
         <View style={styles.compactLabels}>
           <Text style={[styles.compactPct, { color: "#00C853" }]}>{homeWin}%</Text>
-          <Text style={[styles.compactPct, { color: "#7B9BB5" }]}>{draw}%</Text>
+          <Text style={[styles.compactPct, { color: "#FFFFFF" }]}>{draw}%</Text>
           <Text style={[styles.compactPct, { color: "#1565C0" }]}>{awayWin}%</Text>
         </View>
       </View>

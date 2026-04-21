@@ -5,18 +5,13 @@ import { useTeams, useLeagues } from "@/application/hooks";
 import { TeamLogo } from "./TeamLogo";
 import { PredictionBar } from "./PredictionBar";
 import { useColors } from "@/application/hooks/use-colors";
+import { STATUS_LABELS } from "@/core/presentation/match-football/constants";
 
 interface MatchCardProps {
   match: MatchModel;
   onPress?: () => void;
   compact?: boolean;
 }
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  upcoming: { label: "Próximo", color: "#7B9BB5" },
-  live: { label: "En Vivo", color: "#00C853" },
-  finished: { label: "Finalizado", color: "#5A7A96" },
-};
 
 export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
   const { getTeam } = useTeams();
