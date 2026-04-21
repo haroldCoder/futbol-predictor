@@ -5,7 +5,8 @@ import { PredictionModel } from "./prediction.model";
 
 export interface MatchModel {
     id: string;
-    leagueId: string;
+    league: string;
+    leagueLogo: string;
     homeTeamId: string;
     awayTeamId: string;
     date: string;       // ISO date string

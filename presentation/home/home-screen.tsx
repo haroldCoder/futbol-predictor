@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import { ScreenContainer } from '@/components/screen-container'
 import { useColors } from '@/application/hooks/use-colors'
@@ -10,10 +10,9 @@ export const HomeScreen = () => {
     const { data: matches, loading, error } = useTodayMatches();
 
     // Convertir ApiMatch a Match y separar por estado
-    const convertedMatches = matches ?? [];
-    const upcomingMatches = convertedMatches.filter((m) => m.status === "upcoming").slice(0, 5);
-    const liveMatches = convertedMatches.filter((m) => m.status === "live");
-    const featuredMatch = liveMatches[0] ?? upcomingMatches[0];
+    const convertedMatches = useMemo(() => matches ?? [], [matches]);
+    const upcomingMatches = useMemo(() => convertedMatches.filter((m) => m.status === "upcoming").slice(0, 5), [convertedMatches]);
+    const liveMatches = useMemo(() => convertedMatches.filter((m) => m.status === "live"), [convertedMatches]);
 
     // Calcular estadísticas simuladas (en producción, vendría del backend)
     const accuracy = {

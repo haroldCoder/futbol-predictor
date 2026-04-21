@@ -11,7 +11,8 @@ export class FootballDataMapper {
 
         return {
             id: apiMatch.id.toString(),
-            leagueId: apiMatch.competition?.code?.toLowerCase() || "",
+            league: apiMatch.competition?.name || "",
+            leagueLogo: apiMatch.competition?.emblem || "",
 
             homeTeamId: "",
             awayTeamId: "",
