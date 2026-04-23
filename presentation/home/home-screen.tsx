@@ -7,7 +7,7 @@ import { useTodayMatches } from '@/application/hooks'
 
 export const HomeScreen = () => {
     const colors = useColors();
-    const { data: matches, loading, error } = useTodayMatches();
+    const { data: matches, loading, predictionsLoading, error } = useTodayMatches();
 
     // Convertir ApiMatch a Match y separar por estado
     const convertedMatches = useMemo(() => matches ?? [], [matches]);
@@ -50,7 +50,7 @@ export const HomeScreen = () => {
 
                 {/* Upcoming Matches */}
                 {!loading && upcomingMatches.length > 0 && (
-                    <UpcomingMatches upcomingMatches={upcomingMatches} />
+                    <UpcomingMatches upcomingMatches={upcomingMatches} predictionIsLoading={predictionsLoading} />
                 )}
 
                 {/* Empty State */}

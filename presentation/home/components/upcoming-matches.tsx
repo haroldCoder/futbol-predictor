@@ -7,9 +7,10 @@ import { useRouter } from 'expo-router'
 
 interface UpcomingMatchesProps {
     upcomingMatches: any[];
+    predictionIsLoading: boolean;
 }
 
-export const UpcomingMatches = ({ upcomingMatches }: UpcomingMatchesProps) => {
+export const UpcomingMatches = ({ upcomingMatches, predictionIsLoading }: UpcomingMatchesProps) => {
     const colors = useColors();
     const router = useRouter();
 
@@ -24,6 +25,7 @@ export const UpcomingMatches = ({ upcomingMatches }: UpcomingMatchesProps) => {
                     <MatchCard
                         key={match.id}
                         match={match}
+                        predictionIsLoading={predictionIsLoading}
                         onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id.toString() } })}
                     />
                 ))}

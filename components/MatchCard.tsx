@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { MatchModel } from "@/core/domain/models";
 import { useTeams, useLeagues } from "@/application/hooks";
 import { TeamLogo } from "./TeamLogo";
@@ -11,15 +11,16 @@ interface MatchCardProps {
   match: MatchModel;
   onPress?: () => void;
   compact?: boolean;
+  predictionIsLoading: boolean;
 }
 
-export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
+export function MatchCard({ match, onPress, compact = false, predictionIsLoading }: MatchCardProps) {
   const { getTeam } = useTeams();
   const { getLeague } = useLeagues();
   const colors = useColors();
   const homeTeam = getTeam(match.homeTeamId);
   const awayTeam = getTeam(match.awayTeamId);
-  const league = getLeague(match.leagueId);
+  const league = getLeague(match.league);
   const status = STATUS_LABELS[match.status];
 
   const predictedLabel =
@@ -62,20 +63,27 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
           </Text>
         </View>
 
-        <View style={styles.vsBlock}>
-          {match.status === "finished" && match.score ? (
-            <Text style={[styles.score, { color: colors.foreground }]}>
-              {match.score.home} - {match.score.away}
-            </Text>
+        {
+          (predictionIsLoading && !match.prediction) ? (
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
-            <Text style={[styles.vs, { color: colors.muted }]}>VS</Text>
-          )}
-          <View style={[styles.predictedBadge, { backgroundColor: "#00C85322", borderColor: "#00C853" }]}>
-            <Text style={[styles.predictedText, { color: "#00C853" }]} numberOfLines={1}>
-              {predictedLabel}
-            </Text>
-          </View>
-        </View>
+            <View style={styles.vsBlock}>
+              {match.status === "finished" && match.score ? (
+                <Text style={[styles.score, { color: colors.foreground }]}>
+                  {match.score.home} - {match.score.away}
+                </Text>
+              ) : (
+                <Text style={[styles.vs, { color: colors.muted }]}>VS</Text>
+              )}
+              <View style={[styles.predictedBadge, { backgroundColor: "#00C85322", borderColor: "#00C853" }]}>
+                <Text style={[styles.predictedText, { color: "#00C853" }]} numberOfLines={1}>
+                  {predictedLabel}
+                </Text>
+              </View>
+            </View>
+          )
+        }
+
 
         <View style={[styles.teamBlock, styles.teamBlockRight]}>
           <TeamLogo source={awayTeam?.emoji || match.awayTeam?.logoUrl} size={22} />
@@ -86,7 +94,7 @@ export function MatchCard({ match, onPress, compact = false }: MatchCardProps) {
       </View>
 
       {/* Prediction Bar */}
-      {!compact && match.prediction && (
+      {!compact && (match.prediction && !predictionIsLoading) && (
         <View style={styles.predictionSection}>
           <PredictionBar prediction={match.prediction} compact />
         </View>

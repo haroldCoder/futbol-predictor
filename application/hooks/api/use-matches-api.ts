@@ -1,11 +1,8 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { DiFactory } from "@/core/factories";
-import { MatchPredictorService } from "@/core/domain/services";
-import { useMemo } from "react";
-import { MatchModel } from "@/core/domain/models";
+import { useEnrichedMatches } from "./use-enriched-matches";
 
 const matchRepository = DiFactory.getMatchRepository();
-const standingRepository = DiFactory.getStadingRepository();
 
 export function useTodayMatches() {
     const { data: matches, isLoading, error, refetch } = useQuery({
@@ -16,148 +13,18 @@ export function useTodayMatches() {
         refetchOnMount: false,
     });
 
-    const enrichedMatches = useEnrichedMatches(matches ?? []);
+    const { data: enrichedMatches, isLoading: predictionsLoading } = useEnrichedMatches(matches ?? []);
 
     return {
         data: enrichedMatches,
         loading: isLoading || matches === undefined,
+        predictionsLoading,
         error: error instanceof Error ? error : null,
         refetch: async () => { await refetch(); }
     };
 }
 
-export function useEnrichedMatches(matches: MatchModel[]) {
-    // Helper para meter retraso entre peticiones y no saturar la API (Standard fix para limite de 10 req/min)
-    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Obtener IDs únicos de equipos y ligas para minimizar peticiones
-    const uniqueTeamIds = Array.from(new Set(matches.flatMap(m => [Number(m.homeTeamId), Number(m.awayTeamId)])));
-    const uniqueLeagues = Array.from(new Set(matches.map(m => m.leagueCode))).filter(Boolean);
-
-    // 1. Estadísticas de la liga (Standings) - Una por liga única
-    const leagueStandings = useQueries({
-        queries: uniqueLeagues.map((leagueCode, index) => ({
-            queryKey: ["standings_full", leagueCode],
-            queryFn: async () => {
-                await wait(index * 6500); // 6.5 segundos entre ligas para margen de seguridad
-                return standingRepository.getByLeague(leagueCode);
-            },
-            staleTime: 1000 * 60 * 60,
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
-        }))
-    });
-
-    // 2. Últimos partidos por equipo - Uno por equipo único
-    const teamFormResults = useQueries({
-        queries: uniqueTeamIds.map((teamId, index) => ({
-            queryKey: ["last_matches_form", teamId],
-            queryFn: async () => {
-                // Empezar después de las ligas, con 6.5 segundos entre cada petición única
-                const baseDelay = uniqueLeagues.length * 6500;
-                await wait(baseDelay + (index * 6500));
-                return matchRepository.getLastMatches(teamId!);
-            },
-            staleTime: 1000 * 60 * 30,
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
-        }))
-    });
-
-    return useMemo(() => {
-        if (matches.length === 0) return [];
-
-        // Crear mapas para acceso rápido
-        const standingsMap = new Map();
-        uniqueLeagues.forEach((code, idx) => {
-            if (leagueStandings[idx].data) standingsMap.set(code, leagueStandings[idx].data);
-        });
-
-        const formMap = new Map();
-        uniqueTeamIds.forEach((id, idx) => {
-            if (teamFormResults[idx].data) formMap.set(id, teamFormResults[idx].data);
-        });
-
-        return matches.map((match) => {
-            const leagueData = standingsMap.get(match.leagueCode);
-            const homeForm = formMap.get(Number(match.homeTeamId));
-            const awayForm = formMap.get(Number(match.awayTeamId));
-
-            if (!homeForm || !awayForm || !leagueData) return match;
-
-            // Extraer datos de standing para los equipos específicos del match
-            const homeStandingEntry = leagueData.find((e: any) => e.teamId === Number(match.homeTeamId));
-            const awayStandingEntry = leagueData.find((e: any) => e.teamId === Number(match.awayTeamId));
-
-            if (!homeStandingEntry || !awayStandingEntry) return match;
-
-            const standingData = {
-                homeTeam: {
-                    position: homeStandingEntry.position,
-                    points: homeStandingEntry.points,
-                    goalsFor: homeStandingEntry.goalsFor,
-                    goalsAgainst: homeStandingEntry.goalsAgainst,
-                    goalDifference: homeStandingEntry.goalDifference,
-                    wins: homeStandingEntry.won,
-                    matchesPlayed: homeStandingEntry.playedGames,
-                },
-                awayTeam: {
-                    position: awayStandingEntry.position,
-                    points: awayStandingEntry.points,
-                    goalsFor: awayStandingEntry.goalsFor,
-                    goalsAgainst: awayStandingEntry.goalsAgainst,
-                    goalDifference: awayStandingEntry.goalDifference,
-                    wins: awayStandingEntry.won,
-                    matchesPlayed: awayStandingEntry.playedGames,
-                }
-            };
-
-            // H2H aproximado (basado en el rendimiento individual actual del equipo)
-            const h2hData = {
-                wins: homeForm.resultSet.wins,
-                draws: 0,
-                losses: homeForm.resultSet.played - homeForm.resultSet.wins,
-            };
-
-            const clonedMatch = { ...match };
-
-            clonedMatch.prediction = MatchPredictorService.predict(
-                homeForm,
-                awayForm,
-                h2hData as any,
-                standingData as any
-            );
-
-            clonedMatch.homeStats = {
-                goalsPerGame: standingData.homeTeam.goalsFor / (standingData.homeTeam.matchesPlayed || 1),
-                concededPerGame: standingData.homeTeam.goalsAgainst / (standingData.homeTeam.matchesPlayed || 1),
-                possession: 50,
-                form: [],
-                position: standingData.homeTeam.position,
-                points: standingData.homeTeam.points,
-                played: standingData.homeTeam.matchesPlayed,
-                wins: standingData.homeTeam.wins,
-                draws: homeStandingEntry.draw || 0,
-                losses: homeStandingEntry.lost || 0,
-            };
-
-            clonedMatch.awayStats = {
-                goalsPerGame: standingData.awayTeam.goalsFor / (standingData.awayTeam.matchesPlayed || 1),
-                concededPerGame: standingData.awayTeam.goalsAgainst / (standingData.awayTeam.matchesPlayed || 1),
-                possession: 50,
-                form: [],
-                position: standingData.awayTeam.position,
-                points: standingData.awayTeam.points,
-                played: standingData.awayTeam.matchesPlayed,
-                wins: standingData.awayTeam.wins,
-                draws: awayStandingEntry.draw || 0,
-                losses: awayStandingEntry.lost || 0,
-            };
-
-            return clonedMatch;
-        });
-    }, [matches, leagueStandings, teamFormResults]);
-}
 
 export function useCompetitionMatches(competitionCode: string) {
     const { data, isLoading, error, refetch } = useQuery({
